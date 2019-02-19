@@ -1,0 +1,11 @@
+import zmq
+
+context = zmq.Context()
+socket = contect.socket(zmq.REP)
+socket.bind("tcp://*:5555")
+filename = socket.recv()
+while True:
+    data = socket.recv()
+    with open(filename, "wb") as f:
+        f.write(data)
+    socket.send(b"Done")
