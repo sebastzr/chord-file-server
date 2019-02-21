@@ -1,4 +1,5 @@
 import zmq
+from node import Node
 
 partSize = 1024*1024*10
 
@@ -14,6 +15,7 @@ def sendIndexFile(socket, filename):
 
 def main():
     serversAddress = []
+    nodes = {}
     usersTable = {}
     partsFilesTable = {}
 
@@ -94,8 +96,17 @@ def main():
         if serverSocket in sockets:
             operation, *rest = serverSocket.recv_multipart()
             if operation == b'newServer':
-                serversAddress.append(rest[0])
-                serverSocket.send(b'Added')
+                serversAddress.append(rest[0]+rest[1])
+                nodes[rest[0]] = (Node(rest[1].decode('ascii'), rest[2].decode('ascii')))
+                print("New Node: {}".format(rest[0]))
+                if len(nodes) == 1:
+                    serverSocket.send_multipart([b'create'])
+                else:
+                    nodesKeys = list(nodes.keys())
+                    serverSocket.send_multipart([ b'join', bytes(nodes[ nodesKeys[ len(nodesKeys)-1 ] ].ip, 'ascii'), bytes(nodes[ nodesKeys[ len(nodesKeys)-1 ] ].port, 'ascii')])
+            
+            if operation == b'who':
+                serverSocket.send_multipart([ b'here', nodes[rest[0]].ip, nodes[rest[0]].port ])
 
 if __name__ == '__main__':
     main()
