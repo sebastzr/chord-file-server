@@ -131,4 +131,33 @@ class Key(object):
 	def __len__(self):
         return len(self.value)
         
+     def isbetween(self, limit1, limit2):
+        '''
+        Retrona verdadero si el valor esta contenido entre limites [limit1,  limit2]
+        Raise exception si limit1 == limit2
+        '''
+        if len(self.value) != len(limit1) != len(limit2):
+            #self.log.error("Unable to compare.")
+            raise Exception
+        if self.value == limit1 or self.value == limit2:
+            return True
+
+        if limit1 > limit2:
+            if self.value > limit1 or self.value < limit2:
+                return True
+            else:
+                return False
+        elif limit1 < limit2:
+            if self.value > limit1 and self.value < limit2:
+                return True
+            else:
+                return False
+        else:
+            # limit1 == limit2
+            raise Exception
+        
+class Uid(Key):
     
+    def __init__(self, strtohash):
+        hash = hashlib.sha256(strtohash)
+        Key.__init__(self, hash.hexdigest())    
