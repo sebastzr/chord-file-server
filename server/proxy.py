@@ -99,6 +99,7 @@ def main():
                 serversAddress.append( bytes( rest[0].decode('ascii') + ":" + rest[1].decode('ascii'), 'ascii' ) )
                 newNode = Node(rest[0].decode('ascii'), rest[1].decode('ascii'))
                 newNode.set_hash()
+                #newNode.set_id(str(len(serversAddress)))
                 nodes[newNode.id] = newNode
                 print("New Node: {}".format(newNode.id))
                 if len(nodes) == 1:
