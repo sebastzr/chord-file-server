@@ -64,4 +64,71 @@ class Key(object):
         else:
             raise TypeError("__ne__  solo soporta str o Key como valor")
     
+     def canonicalize(self, value):
+        '''
+        Retorna el valor hexadecimal con el numero correcto de caracteres
+        se encarga de retirar '0x' y 'L'
+        '''
+        return format(value, '0>{}x'.format(self.idlength/4))
+        
+     def __add__(self, value):
+        if isinstance(value, int) or isinstance(value, long):
+            return self.sumint(value)
+        elif isinstance(value, str):
+            return self.sumhex(value)
+        elif isinstance(value, Key):
+            return self.sumhex(value.value)
+        else:
+            #self.log.error("Sum with unknow type")
+            print type(value)
+            raise TypeError
+    
+    def sumint(self, value):
+        '''
+        Retorna suma uid + value en representacion hexadecimal
+        @param value: int para sumar  con valor uid 
+        '''
+        res = (int(self.value, 16) + value) % pow(2, self.idlength)  
+        return self.canonicalize(res)
+
+    def sumhex(self, value):
+		'''
+        Retorna suma uid + value en representacion hexadecimal
+        @param  str repr del numero hexadecimal
+        '''
+        res = (int(self.value, 16) + int(value, 16)) % pow(2, self.idlength)
+        return self.canonicalize(res)   
+        
+    def __sub__(self, value):
+        if isinstance(value, int):
+            return self.subint(value)
+        elif isinstance(value, str):
+            return self.subhex(value)
+        elif isinstance(value, Key):
+            return self.subhex(value.value)
+        else:
+            #self.log.error("Sub with unknow type")
+            raise TypeError
+    
+    def subint(self, value):
+        '''
+        Retorna resta uid + value en representacion hexadecimal
+        @param value: int para restar con valor uid 
+        '''
+        
+        res = (int(self.value, 16) - value) % pow(2, self.idlength)
+        return self.canonicalize(res)
+
+    def subhex(self, value):
+        '''
+        Retorna resta uid + value en representacion hexadecimal
+        @param  str repr del numero hexadecimal
+        '''
+        res = (int(self.value, 16) - int(value, 16)) % pow(2, self.idlength)
+        return self.canonicalize(res)
+
      
+	def __len__(self):
+        return len(self.value)
+        
+    
