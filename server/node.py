@@ -1,10 +1,6 @@
 #<---------CHORD---------->
 import hashlib
 
-def computeHash(bt):
-    sha1 = hashlib.sha1()
-    sha1.update(bytes(bt, "ascii"))
-    return sha1.hexdigest()
 
 class fingerTable(object):
     def __init__(self):
@@ -20,23 +16,34 @@ class Node(object):
     def __init__(self, ip, port):
         self.ip = ip
         self.port = port
-        self.id = computeHash(self.ip + ":" + self.port)
+        self.id = ""
         self.successor = self
         self.predecessor = None
         self.fingerTable = fingerTable()
         self.next = 0
         self.socket = ''
 
+    def computeHash(self, bt):
+        sha1 = hashlib.sha1()
+        sha1.update(bytes(bt, "ascii"))
+        return sha1.hexdigest()
+
+    def set_hash(self):
+        self.id = self.computeHash(self.ip + ":" + self.port)
+
     def set_socket(self, socket):
         self.socket = socket
 
     def connect(self):
-        self.socket.send_multipart([ b'newServer', bytes(self.id, "ascii"), bytes(self.ip, "ascii"), bytes(self.port, "ascii") ])
+        self.socket.send_multipart([ b'newServer', bytes(self.ip, "ascii"), bytes(self.port, "ascii") ])
         response, *rest = self.socket.recv_multipart()
         print(response)
+        self.id = rest[0]
         if response != b'create':
-            self.join(Node(rest[0].decode('ascii'), rest[1].decode('ascii')))
-
+            newNode = Node(rest[2].decode('ascii'), rest[3].decode('ascii'))
+            newNode.id = rest[1].decode('ascii')
+            self.join(newNode)
+            
     def join(self, newNode):
         self.successor = newNode.find_successor(self.id)
         

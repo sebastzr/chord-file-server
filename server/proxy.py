@@ -96,14 +96,16 @@ def main():
         if serverSocket in sockets:
             operation, *rest = serverSocket.recv_multipart()
             if operation == b'newServer':
-                serversAddress.append(rest[0]+rest[1])
-                nodes[rest[0]] = (Node(rest[1].decode('ascii'), rest[2].decode('ascii')))
-                print("New Node: {}".format(rest[0]))
+                serversAddress.append( bytes( rest[0].decode('ascii') + ":" + rest[1].decode('ascii'), 'ascii' ) )
+                newNode = Node(rest[0].decode('ascii'), rest[1].decode('ascii'))
+                newNode.set_hash()
+                nodes[newNode.id] = newNode
+                print("New Node: {}".format(newNode.id))
                 if len(nodes) == 1:
-                    serverSocket.send_multipart([b'create'])
+                    serverSocket.send_multipart([b'create', bytes(newNode.id, 'ascii')])
                 else:
                     nodesKeys = list(nodes.keys())
-                    serverSocket.send_multipart([ b'join', bytes(nodes[ nodesKeys[ len(nodesKeys)-1 ] ].ip, 'ascii'), bytes(nodes[ nodesKeys[ len(nodesKeys)-1 ] ].port, 'ascii')])
+                    serverSocket.send_multipart([ b'join', bytes(newNode.id, 'ascii'), bytes(nodes[ nodesKeys[ len(nodesKeys)-1 ] ].id, 'ascii'), bytes(nodes[ nodesKeys[ len(nodesKeys)-1 ] ].ip, 'ascii'), bytes(nodes[ nodesKeys[ len(nodesKeys)-1 ] ].port, 'ascii')])
             
             if operation == b'who':
                 serverSocket.send_multipart([ b'here', nodes[rest[0]].ip, nodes[rest[0]].port ])
